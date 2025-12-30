@@ -264,22 +264,50 @@ curl "http://localhost:8000/api/v1/risk-analysis?company_name=Tesla"
 
    - Ir a **Workflows** → **Import from File**
    - Seleccionar: `exercise02/workflows/workflow-riesgos.json`
-   - Configurar credenciales de Google Sheets
-   - Actualizar ID del Google Spreadsheet
 
-3. **El workflow incluye:**
+3. **El workflow incluye 14 nodos interconectados:**
 
-   - ✅ Schedule Trigger (ejecución diaria automática)
-   - ✅ Google Sheets (lectura de empresas)
-   - ✅ HTTP Request al API del Ejercicio 01
-   - ✅ Procesamiento de resultados
-   - ✅ Google Sheets (escritura de resultados)
-   - ✅ Alertas automáticas
+   **Flujo automático completo:**
 
-4. **Activar workflow** y monitorear ejecuciones
+   ```
+   Schedule (8 AM) → Drive: Buscar "monitoring_list"
+   → IF: ¿Existe? → NO: Crear + Poblar empresas
+                  → SI: Leer empresas
+   → HTTP Request: API Exercise01 (por cada empresa)
+   → IF: ¿Status 200? → NO: Email de error
+                       → SI: Drive: Buscar "monitoring_register"
+                             → IF: ¿Existe? → NO: Crear sheet
+                                            → SI: Continuar
+                             → JS: Formatear datos
+                             → Sheets: Guardar análisis
+                             → Email: Reporte exitoso
+   ```
 
-**Alternativa - Crear workflow manualmente:**
-Ver documentación completa en [exercise02/README.md](exercise02/README.md)
+   **Características integradas:**
+
+   - ✅ Gestión automática de Google Sheets (creación si no existen)
+   - ✅ Lista de empresas: Tesla, Apple, Luis Arce (editable)
+   - ✅ Llamadas al API: `http://host.docker.internal:8000/api/v1/risk-analysis`
+   - ✅ Formateo de 12 campos: timestamp, company, risk_status, risk_score, sentiment, compliance_type, evidence, URL, manual_review, etc.
+   - ✅ Manejo de errores: Rama alternativa con email de alerta
+   - ✅ Retry logic: HTTP Request configurado con reintentos automáticos
+   - ✅ Emails detallados: Templates con todos los detalles del análisis
+
+4. **Configurar credenciales necesarias:**
+
+   - Google Sheets OAuth2 (3 nodos)
+   - Google Drive OAuth2 (2 nodos)
+   - SMTP para emails (2 nodos - actualizar direcciones)
+
+5. **Activar workflow** (toggle superior derecho)
+   - Se ejecutará automáticamente todos los días a las 8:00 AM
+   - Monitorear ejecuciones en la pestaña "Executions"
+
+**Ver documentación completa del workflow:**
+
+- [exercise02/workflows/README.md](exercise02/workflows/README.md) - Arquitectura detallada
+- [exercise02/README.md](exercise02/README.md) - Guía completa de configuración
+- [exercise02/QUICK_START.md](exercise02/QUICK_START.md) - Inicio rápido
 
 ---
 
@@ -307,16 +335,30 @@ Ver documentación completa en [exercise02/README.md](exercise02/README.md)
 
 ### Ejercicio 02 - Automatización n8n
 
-| Característica                | Descripción                            | Integración       |
-| ----------------------------- | -------------------------------------- | ----------------- |
-| **Scheduled Execution**       | Triggers programados (CRON)            | n8n Scheduler     |
-| **Google Sheets Integration** | Lectura/escritura de datos             | Google Sheets API |
-| **Gmail Automation**          | Envío automático de reportes           | Gmail API         |
-| **API Orchestration**         | Llamadas HTTP al API del Ejercicio 01  | HTTP Request Node |
-| **Data Transformation**       | Formateo y procesamiento de resultados | Code Node (JS)    |
-| **Conditional Logic**         | Flujos condicionales (IF/ELSE)         | IF Node           |
-| **Error Recovery**            | Manejo de errores y reintentos         | Error Workflow    |
-| **Persistent Storage**        | Workflows y credenciales persistentes  | SQLite + Volumes  |
+| Característica                | Descripción                                       | Integración/Tecnología |
+| ----------------------------- | ------------------------------------------------- | ---------------------- |
+| **Scheduled Execution**       | Ejecución diaria automática a las 8:00 AM         | Schedule Trigger       |
+| **Google Drive Integration**  | Búsqueda y verificación de sheets existentes      | Google Drive API       |
+| **Google Sheets Integration** | Lectura/escritura automática de datos             | Google Sheets API      |
+| **Dynamic Sheet Creation**    | Crea sheets automáticamente si no existen         | Conditional Logic + IF |
+| **Gmail Automation**          | Emails de éxito y error con templates detallados  | SMTP (Gmail)           |
+| **API Orchestration**         | Llamadas HTTP al API del Ejercicio 01 por empresa | HTTP Request Node      |
+| **Data Transformation**       | Formateo de 12 campos del API a formato Sheets    | Code Node (JavaScript) |
+| **Conditional Logic**         | 3 validaciones IF (sheets, status, errores)       | IF Nodes               |
+| **Error Recovery**            | Rama alternativa con email de alerta + retry      | Error Handling + Retry |
+| **Persistent Storage**        | Workflows, credenciales y datos persistentes      | SQLite + Docker Volume |
+| **Default Companies**         | Lista inicial: Tesla, Apple, Luis Arce            | JavaScript Code        |
+| **14-Node Architecture**      | Workflow completo con gestión end-to-end          | n8n Workflow Engine    |
+| **Retry Logic**               | HTTP Request con reintentos automáticos           | retryOnFail: true      |
+| **Detailed Reporting**        | Emails con timestamp, risk_status, evidence, etc. | Email Templates        |
+
+**Google Sheets Gestionados Automáticamente:**
+
+- 📊 **monitoring_list**: Lista de empresas a monitorear (sheet: "list")
+- 📊 **monitoring_register**: Registro histórico de análisis (sheet: "registros")
+
+**Datos Capturados (12 campos):**
+timestamp_analisis, status, message, company, registration_date, risk_status, risk_score, sentiment, compliance_type, evidence, url, manual_review
 
 ---
 

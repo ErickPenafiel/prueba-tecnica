@@ -102,66 +102,131 @@ curl http://localhost:8000/api/v1/risk-analysis?company_name=Tesla
 
 ### Importar Workflow Pre-configurado ⚡
 
+El workflow `workflow-riesgos.json` incluye 14 nodos interconectados con lógica completa:
+
+**Funcionalidades integradas:**
+
+- ✅ Gestión automática de Google Sheets (creación si no existen)
+- ✅ Schedule trigger (ejecución diaria a las 8 AM)
+- ✅ Lectura de lista de empresas desde "monitoring_list"
+- ✅ Llamadas al API del Exercise01 por cada empresa
+- ✅ Validación de respuestas (status 200)
+- ✅ Escritura de resultados en "monitoring_register"
+- ✅ Formateo de datos con JavaScript
+- ✅ Emails de éxito y error
+- ✅ Manejo robusto de errores
+
+**Pasos para importar:**
+
 1. **En n8n, haz clic en "Workflows"** (menú superior izquierdo)
 2. **Haz clic en "Import from File"**
 3. **Selecciona el archivo:** `workflows/workflow-riesgos.json`
-4. **Configurar credenciales de Google Sheets:**
-   - Asignar credenciales en los nodos de Google Sheets
-   - Actualizar el ID del Spreadsheet
-5. **¡Listo!** El workflow está configurado
+4. **El workflow aparecerá con 14 nodos ya configurados**
 
-**Probar el workflow:**
+**Configuraciones necesarias:**
 
-- Haz clic en **"Execute Workflow"** (botón superior derecho)
-- Verás el análisis de riesgo de las empresas en tu Google Sheet
-- Haz clic en cada nodo para ver los resultados
-- El workflow se ejecutará automáticamente cada día a las 8 AM
+5. **Google Sheets Credentials** (3 nodos):
 
-### Opción B: Crear Workflow Manualmente
+   - `Get row(s) in sheet`
+   - `Create spreadsheet` / `Create spreadsheet1`
+   - `Append row in sheet` / `Append row in sheet1`
+   - **Acción:** Asignar "Google Sheets account" OAuth2
 
-#### Workflow Básico: Análisis de Tesla
+6. **Google Drive Credentials** (2 nodos):
 
-1. **Nuevo Workflow** → Haz clic en el `+` para crear workflow
+   - `Search files and folders`
+   - `Search files and folders1`
+   - **Acción:** Asignar "Google Drive account" OAuth2
 
-2. **Agregar nodo HTTP Request:**
+7. **SMTP Credentials** (2 nodos):
 
-   - Method: `GET`
-   - URL: `http://host.docker.internal:8000/api/v1/risk-analysis`
-   - Query Parameters:
-     - Name: `company_name`
-     - Value: `Tesla`
+   - `Send email` (errores)
+   - `Send email1` (reportes exitosos)
+   - **Acción:** Configurar servidor SMTP
+   - **IMPORTANTE:** Actualizar emails en los nodos:
+     ```javascript
+     fromEmail: "tu-email@gmail.com";
+     toEmail: "destinatario@gmail.com";
+     ```
 
-3. **Ejecutar nodo** → Haz clic en "Execute Node"
+8. **Empresas iniciales** (opcional):
 
-4. **Ver resultado** → Deberías ver el análisis de riesgo de Tesla
+   - Editar nodo `Code in JavaScript1`
+   - Modificar lista por defecto:
+     ```javascript
+     return [
+     	{ nombre: "Tesla" },
+     	{ nombre: "Apple" },
+     	{ nombre: "Microsoft" },
+     	{ nombre: "Amazon" },
+     ];
+     ```
 
-### Workflow Avanzado: Con Google Sheets
+9. **¡Listo!** Haz clic en **"Execute Workflow"**
+
+**Qué sucederá:**
+
+- Si no existe "monitoring_list": Se crea y puebla con empresas por defecto
+- Si existe: Lee empresas del sheet
+- Llama al API por cada empresa
+- Si API responde OK: Guarda en "monitoring_register" + Envía email exitoso
+- Si API falla: Envía email de error
+
+**Activación automática:**
+
+- Activa el workflow (toggle superior derecho)
+- Se ejecutará automáticamente todos los días a las 8:00 AM
+
+### Estructura del Workflow Importado
+
+**Flujo completo (14 nodos):**
 
 ```
-1. Schedule Trigger (ejecutar cada hora)
+1. Schedule Trigger (8 AM diario)
    ↓
-2. Google Sheets (leer lista de empresas)
+2. Google Drive: Buscar "monitoring_list"
    ↓
-3. Loop/Split In Batches
-   ↓
-4. HTTP Request (análisis por empresa)
-   ↓
-5. Code (formatear resultados)
-   ↓
-6. Google Sheets (escribir resultados)
-   ↓
-7. IF (¿Hay alertas?)
-   ↓
-8. Gmail (enviar reporte)
+3. IF: ¿Existe monitoring_list?
+   ├─ NO → 4. Crear sheet
+   │         ↓
+   │      5. JS: Generar empresas (Tesla, Apple, Luis Arce)
+   │         ↓
+   │      6. Append: Escribir empresas
+   │         ↓
+   └─ SI → 7. Get rows: Leer empresas del sheet
+              ↓
+         8. HTTP Request: POST a Exercise01 API
+            URL: host.docker.internal:8000/api/v1/risk-analysis
+            Param: company_name={{ $json.nombre }}
+            ↓
+         9. IF: ¿Status 200?
+            ├─ NO → 16. Send Email (ERROR)
+            │
+            └─ SI → 10. Google Drive: Buscar "monitoring_register"
+                      ↓
+                   11. IF: ¿Existe monitoring_register?
+                      ├─ NO → 12. Crear sheet "registros"
+                      │         ↓
+                      └─ SI → 13. JS: Formatear datos API
+                                ↓
+                             14. Append: Guardar en "registros"
+                                ↓
+                             15. Send Email (SUCCESS)
 ```
 
-**Configuración del nodo HTTP Request (paso 4):**
+**Nodos Clave:**
 
-```javascript
-Method: GET
-URL: http://host.docker.internal:8000/api/v1/risk-analysis
-Query Parameters:
-  - company_name: {{ $json.company_name }}
+- **HTTP Request**: `retryOnFail: true`, `onError: continueRegularOutput`
+- **Code in JavaScript**: Transforma respuesta JSON a formato Sheets
+- **If conditions**: Validación de existencia de sheets y status codes
+- **Send email**: Dos ramas (exitoso vs error) con templates HTML/texto
+
+**Datos guardados en Sheets:**
+
+```
+timestamp_analisis | status | message | company | registration_date |
+risk_status | risk_score | sentiment | compliance_type | evidence |
+url | manual_review
 ```
 
 ---
