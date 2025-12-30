@@ -1,5 +1,69 @@
 # 🚀 Ejercicio 02: Automatización con n8n - Integración con SafeBank AI
 
+---
+
+## ⚠️ PREREQUISITO OBLIGATORIO - LEE ESTO PRIMERO
+
+> **🛑 ATENCIÓN**: Este ejercicio **NO FUNCIONARÁ** sin el Ejercicio 01 ejecutándose.
+
+**ANTES DE CONTINUAR CON ESTE EJERCICIO, DEBES:**
+
+### 1️⃣ Verificar que el Ejercicio 01 está configurado y funcionando
+
+El **Ejercicio 01 (SafeBank AI API)** debe estar ejecutándose en el puerto 8000 ANTES de levantar n8n.
+
+```powershell
+# En una terminal separada, ve al directorio del ejercicio 01
+cd .\exercise01
+
+# Verifica que existe el entorno virtual
+Get-ChildItem venv
+
+# Si NO existe, créalo:
+python -m venv venv
+
+# Activa el entorno virtual
+.\venv\Scripts\activate
+
+# Instala dependencias (si no lo has hecho)
+pip install -r requirements.txt
+
+# Configura tu NEWSAPI_KEY en .env
+# Copia .env.example a .env y agrega tu API key
+
+# Ejecuta el API
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 2️⃣ Verifica que el API responde correctamente
+
+**En otra terminal, prueba:**
+
+```powershell
+# Test de health check
+curl http://localhost:8000/health
+
+# Deberías ver:
+# {"status":"healthy","service":"FinUp Risk Intelligence Platform",...}
+
+# Test de análisis (requiere NewsAPI key configurada)
+curl "http://localhost:8000/api/v1/risk-analysis?company_name=Tesla"
+```
+
+**Si los comandos anteriores NO funcionan:**
+
+- ❌ NO continúes con este ejercicio
+- ❌ El workflow de n8n fallará al intentar conectarse al API
+- ✅ Revisa la documentación del Ejercicio 01: `../exercise01/README.md`
+- ✅ Asegúrate de tener NewsAPI key configurada
+
+**Si los comandos funcionan correctamente:**
+
+- ✅ Mantén esa terminal abierta con el API ejecutándose
+- ✅ Ahora sí puedes continuar con este ejercicio
+
+---
+
 ## 📋 Descripción del Proyecto
 
 Sistema automatizado de análisis de riesgo corporativo que **se conecta directamente con el API de SafeBank AI (Ejercicio 01)** para evaluar empresas de forma continua. Este workflow de n8n orquesta el análisis automatizado de múltiples empresas, consultando el API FastAPI del Exercise 01, procesando resultados y generando reportes automatizados.
@@ -90,43 +154,73 @@ Sistema automatizado de análisis de riesgo corporativo que **se conecta directa
 
 ---
 
-## 📦 Requisitos Previos
+## 📦 Requisitos del Sistema
 
-### Software Necesario
+### 🐳 Docker y Docker Compose (OBLIGATORIO)
 
-- 🐳 **Docker** (v20.10 o superior) - [Descargar Docker Desktop](https://www.docker.com/products/docker-desktop)
-- 🐙 **Docker Compose** (v2.0 o superior) - Incluido en Docker Desktop
-- 🐍 **Python 3.9+** - Para ejecutar el API de SafeBank AI (Ejercicio 01)
-- 🌐 **Cuenta de Google Cloud Platform** con APIs habilitadas
-- 🔑 **Credenciales OAuth 2.0** de Google Workspace
+Este ejercicio se ejecuta completamente en Docker. **Docker Desktop es REQUISITO OBLIGATORIO**.
 
-### ⚠️ Dependencia Crítica: Ejercicio 01
+#### Instalación de Docker Desktop
 
-**IMPORTANTE**: Este ejercicio requiere que el **Ejercicio 01 (SafeBank AI API)** esté ejecutándose antes de iniciar n8n.
+**Windows 10/11:**
 
-1. **Primero ejecuta el Ejercicio 01:**
+1. **Descargar Docker Desktop:**
+
+   - [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+   - Versión mínima: **20.10** o superior
+
+2. **Instalar Docker Desktop:**
+
+   - Ejecutar el instalador descargado
+   - Reiniciar el sistema si es requerido
+   - Iniciar Docker Desktop desde el menú de inicio
+
+3. **Verificar instalación:**
 
    ```powershell
-   # Navegar al directorio del Ejercicio 01
-   cd ..\exercise01
+   # Verificar versión de Docker
+   docker --version
+   # Debe mostrar: Docker version 20.10.x o superior
 
-   # Crear entorno virtual
-   python -m venv venv
+   # Verificar Docker Compose (incluido en Docker Desktop)
+   docker-compose --version
+   # Debe mostrar: Docker Compose version v2.x.x o superior
 
-   # Activar entorno virtual (Windows)
-   .\venv\Scripts\activate
-
-   # Instalar dependencias
-   pip install -r requirements.txt
-
-   # Ejecutar el API
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   # Verificar que Docker está corriendo
+   docker ps
+   # Debe mostrar una tabla (puede estar vacía)
    ```
 
-2. **Verificar que el API esté funcionando:**
-   - Abre tu navegador en: [http://localhost:8000](http://localhost:8000)
-   - Deberías ver: `{"service": "FinUp Risk Intelligence Platform", ...}`
-   - Documentación interactiva: [http://localhost:8000/docs](http://localhost:8000/docs)
+**Si `docker ps` muestra error:**
+
+- ✅ Asegúrate de que Docker Desktop está ejecutándose (ícono en la bandeja del sistema)
+- ✅ Abre Docker Desktop y espera a que inicie completamente
+- ✅ Reinicia Docker Desktop: Settings → Restart
+
+#### Configuración de Docker Desktop
+
+**Para mejor rendimiento:**
+
+1. Abre Docker Desktop
+2. Ve a **Settings** (⚙️) → **Resources**
+3. Configura:
+   - **CPU**: Mínimo 2 cores (recomendado 4)
+   - **Memory**: Mínimo 4 GB (recomendado 8 GB)
+   - **Disk**: Asegúrate de tener al menos 10 GB libres
+4. Click en **Apply & Restart**
+
+### 📋 Software Adicional
+
+- ✅ **Git** - Para clonar el repositorio
+- ✅ **Terminal PowerShell** - Incluido en Windows
+- ✅ **Editor de texto** - Para editar archivos `.env`
+
+### 🔐 Cuentas y Credenciales (Para funcionalidad completa)
+
+- 🌐 **Cuenta de Google Cloud Platform** (para envío de emails y Google Sheets)
+- 🔑 **Credenciales OAuth 2.0** de Google Workspace
+
+> **Nota**: El workflow puede importarse sin estas credenciales, pero requieren configuración para ejecutarse completamente.
 
 ### APIs de Google a Habilitar
 
@@ -134,21 +228,45 @@ Sistema automatizado de análisis de riesgo corporativo que **se conecta directa
 2. **Google Sheets API** - Para lectura/escritura de datos
 3. **Google Drive API** - Para gestión de archivos
 
-**Guía rápida:** Visita [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Enable APIs
+**📖 Guía completa con capturas de pantalla:**
 
-**Configurar OAuth 2.0:**
+👉 **[Ver GOOGLE_CLOUD_SETUP.md](GOOGLE_CLOUD_SETUP.md)** - Guía paso a paso con imágenes
 
-1. Ve a APIs & Services → Credentials
-2. Crea credenciales de tipo "OAuth 2.0 Client ID"
-3. Tipo de aplicación: "Desktop app"
-4. Descarga el JSON de credenciales
-5. Configura las credenciales en n8n (ver sección de configuración)
+Esta guía incluye:
+
+- ✅ Cómo habilitar las APIs en Google Cloud Console
+- ✅ Cómo crear credenciales OAuth 2.0
+- ✅ Cómo configurar la pantalla de consentimiento
+- ✅ Cómo conectar las credenciales en n8n
+- ✅ Solución de problemas comunes con capturas
+
+**Resumen rápido:**
+
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Enable APIs
+2. Habilita: Drive API, Sheets API, Gmail API
+3. Crea credenciales OAuth 2.0 (Aplicación web)
+4. URI de redirección: `http://localhost:5678/rest/oauth2-credential/callback`
+5. Configura en n8n (ver [guía detallada](GOOGLE_CLOUD_SETUP.md))
 
 ---
 
-## 🐳 Configuración de Docker
+## 🐳 Configuración y Levantamiento de Docker
 
-### docker-compose.yml
+### Entendiendo la Arquitectura Docker
+
+Este ejercicio utiliza **Docker Compose** para orquestar el contenedor de n8n con todas las configuraciones necesarias.
+
+**¿Por qué Docker?**
+
+- ✅ Instalación simplificada (no requiere Node.js, npm, etc.)
+- ✅ Aislamiento del sistema host
+- ✅ Persistencia de datos mediante volúmenes
+- ✅ Fácil escalabilidad y portabilidad
+- ✅ Configuración reproducible
+
+### Archivo docker-compose.yml
+
+El proyecto incluye un archivo `docker-compose.yml` pre-configurado:
 
 El proyecto utiliza la siguiente configuración de Docker Compose con soporte para comunicación con el API del Ejercicio 01:
 
@@ -247,25 +365,62 @@ http://192.168.1.100:8000/api/v1/risk-analysis?company_name=Tesla
 
 ---
 
-## 🚀 Guía de Instalación y Ejecución
+## 🚀 Guía de Instalación Paso a Paso
 
-### Paso 1: Asegurarse de que el Ejercicio 01 está corriendo
+> **⚠️ RECORDATORIO**: Antes de ejecutar estos pasos, asegúrate de que el **Ejercicio 01** está ejecutándose en otra terminal. Si no lo has hecho, revisa la sección "PREREQUISITO OBLIGATORIO" al inicio de este documento.
+
+---
+
+### ✅ PASO 0: Verificación Final del Ejercicio 01
+
+**En una terminal separada (déjala abierta):**
 
 ```powershell
-# Terminal 1 - Ejecutar el API de SafeBank AI
+# Terminal 1 - API SafeBank AI (Ejercicio 01)
 cd ..\exercise01
 .\venv\Scripts\activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Verifica que esté funcionando:
+**Salida esperada:**
+
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process...
+INFO:     Started server process
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+**Verificación rápida (en otra terminal):**
 
 ```powershell
-# Probar el endpoint
 curl http://localhost:8000/health
 ```
 
-### Paso 2: Configurar variables de entorno
+**Si obtienes respuesta JSON con "status": "healthy"** → ✅ Puedes continuar
+
+**Si obtienes error de conexión** → ❌ Revisa el Ejercicio 01 primero
+
+---
+
+### 📁 PASO 1: Navegar al directorio del Ejercicio 02
+
+```powershell
+# Abre una NUEVA terminal (PowerShell)
+# Navega al directorio del ejercicio 02
+cd D:\PruebaTecnica\FinUp\exercise02
+
+# Verifica que estás en el directorio correcto
+Get-Location
+# Debe mostrar: D:\PruebaTecnica\FinUp\exercise02
+
+# Lista los archivos
+dir
+# Debes ver: docker-compose.yml, .env.example, etc.
+```
+
+### ⚙️ PASO 2: Configurar Variables de Entorno
 
 ```powershell
 # En el directorio exercise02
@@ -278,42 +433,175 @@ Edita el archivo `.env` y cambia la contraseña:
 N8N_BASIC_AUTH_PASSWORD=tu_contraseña_segura_aqui
 ```
 
-### Paso 3: Levantar n8n con Docker Compose
+### 🐳 PASO 3: Levantar n8n con Docker Compose
+
+#### 3.1 Iniciar el Contenedor
 
 ```powershell
-# Terminal 2 - En el directorio exercise02
+# En el directorio exercise02
+# Asegúrate de estar en: D:\PruebaTecnica\FinUp\exercise02
+
 docker-compose up -d
 ```
 
-Verificar que el contenedor está corriendo:
+**¿Qué hace este comando?**
+
+- `docker-compose`: Herramienta de orquestación de Docker
+- `up`: Crea e inicia los contenedores definidos en docker-compose.yml
+- `-d`: Modo "detached" (segundo plano), libera la terminal
+
+**Salida esperada:**
+
+```
+Creating network "exercise02_default" with the default driver
+Pulling n8n (docker.n8n.io/n8nio/n8n:latest)...
+latest: Pulling from n8nio/n8n
+...
+Status: Downloaded newer image for docker.n8n.io/n8nio/n8n:latest
+Creating exercise02_n8n_1 ... done
+```
+
+> **Primera vez**: La descarga de la imagen puede tomar 5-10 minutos dependiendo de tu conexión a internet (aprox. 500MB).
+
+#### 3.2 Verificar que el Contenedor está Corriendo
 
 ```powershell
+# Ver contenedores activos
 docker ps
 ```
 
-Deberías ver:
+**Salida esperada:**
 
 ```
-CONTAINER ID   IMAGE                              STATUS         PORTS
-xxxxx          docker.n8n.io/n8nio/n8n:latest    Up 2 minutes   0.0.0.0:5678->5678/tcp
+CONTAINER ID   IMAGE                              COMMAND                  CREATED         STATUS         PORTS                    NAMES
+a1b2c3d4e5f6   docker.n8n.io/n8nio/n8n:latest    "tini -- /docker-ent…"   2 minutes ago   Up 2 minutes   0.0.0.0:5678->5678/tcp   exercise02_n8n_1
 ```
 
-### Paso 4: Acceder a la interfaz de n8n
+**Campos importantes:**
 
-1. Abre tu navegador en: **http://localhost:5678**
-2. Ingresa las credenciales (por defecto):
-   - Usuario: `admin`
-   - Contraseña: la que configuraste en `.env`
+- **STATUS**: Debe decir "Up X minutes" (si dice "Restarting" hay un problema)
+- **PORTS**: Debe mostrar "0.0.0.0:5678->5678/tcp"
+- **NAMES**: Nombre del contenedor (puede variar)
 
-### Paso 5: Configurar credenciales de Google en n8n
+#### 3.3 Verificar los Logs del Contenedor
 
-1. En la interfaz de n8n, ve a **Settings** (⚙️) → **Credentials**
+```powershell
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# O ver las últimas 50 líneas
+docker-compose logs --tail=50
+```
+
+**Logs saludables deben mostrar:**
+
+```
+n8n_1  | Editor is now accessible via:
+n8n_1  | http://localhost:5678/
+n8n_1  |
+n8n_1  | Version: X.X.X
+```
+
+**Para salir de los logs:** Presiona `Ctrl + C`
+
+#### 3.4 Verificar Conectividad
+
+```powershell
+# Probar que n8n responde
+curl http://localhost:5678
+
+# Debe redirigir o mostrar HTML
+```
+
+**Si hay problemas:**
+
+```powershell
+# Ver estado detallado
+docker-compose ps
+
+# Reiniciar el contenedor
+docker-compose restart
+
+# Detener y volver a iniciar (si es necesario)
+docker-compose down
+docker-compose up -d
+
+# Ver logs de errores
+docker-compose logs --tail=100
+```
+
+### 🌐 PASO 4: Acceder a la Interfaz Web de n8n
+
+#### 4.1 Abrir n8n en el Navegador
+
+1. **Abre tu navegador preferido** (Chrome, Firefox, Edge)
+2. **Navega a:** http://localhost:5678
+3. **Espera unos segundos** mientras carga la interfaz
+
+#### 4.2 Iniciar Sesión
+
+En la pantalla de login, ingresa:
+
+- **Usuario:** `admin`
+- **Contraseña:** La que configuraste en el archivo `.env` (paso 2)
+
+**Si olvidaste tu contraseña:**
+
+```powershell
+# Ver el archivo .env
+Get-Content .env | Select-String "PASSWORD"
+
+# O editarlo de nuevo
+notepad .env
+```
+
+#### 4.3 Primera Vez en n8n
+
+**Al entrar por primera vez verás:**
+
+- 🏠 Dashboard principal vacío
+- 📋 Menú lateral con opciones: Workflows, Credentials, Executions
+- ➕ Botón "Create workflow" para crear nuevos workflows
+
+**Felicidades! n8n está funcionando correctamente** 🎉
+
+---
+
+### 🔐 PASO 5: Configurar Credenciales de Google (Opcional)
+
+> **📖 GUÍA COMPLETA:** Para instrucciones detalladas con capturas de pantalla, consulta:
+> **[GOOGLE_CLOUD_SETUP.md](GOOGLE_CLOUD_SETUP.md)**
+
+**Resumen rápido:**
+
+1. En la interfaz de n8n, ve a **Menu Izquierdo, en el boton +** (⚙️) → **Credentials**
 2. Haz clic en **Add Credential**
 3. Busca y configura:
-   - **Google Sheets API** (OAuth2)
-   - **Gmail API** (OAuth2)
-   - **Google Drive API** (OAuth2)
-4. Sigue el flujo de autenticación OAuth
+   - **Google Drive OAuth2 API** (para buscar sheets)
+   - **Google Sheets OAuth2 API** (para leer/escribir datos)
+   - **Gmail OAuth2** (opcional, para emails) o **Gmail SMTP** (alternativa)
+4. Usa las credenciales OAuth 2.0 que creaste en Google Cloud
+5. Sigue el flujo de autenticación
+
+**📧 Alternativa SMTP para Emails:**
+
+Si prefieres usar Gmail SMTP en lugar de OAuth 2.0 para enviar emails:
+
+👉 **[Ver GMAIL_SMTP_SETUP.md](GMAIL_SMTP_SETUP.md)** - Guía completa de configuración SMTP
+
+Esta guía incluye:
+
+- ✅ Configuración de Verificación en Dos Pasos
+- ✅ Generación de Contraseña de Aplicación
+- ✅ Parámetros técnicos del servidor (smtp.gmail.com:465)
+- ✅ Configuración de credenciales SMTP en n8n
+- ✅ Solución de problemas comunes
+
+**⚠️ Importante:**
+
+- Necesitarás el **Client ID** y **Client Secret** de Google Cloud
+- Si no los has creado, consulta la [guía completa](GOOGLE_CLOUD_SETUP.md)
+- La URI de redirección debe ser: `http://localhost:5678/rest/oauth2-credential/callback`
 
 ### Paso 6: Importar el Workflow
 
@@ -372,6 +660,9 @@ url | manual_review
 
 5. **Configurar credenciales (obligatorio):**
 
+   > **📖 ¿No tienes credenciales configuradas?** Consulta la guía completa:
+   > **[GOOGLE_CLOUD_SETUP.md](GOOGLE_CLOUD_SETUP.md)**
+
    **a) Google Sheets OAuth2** (asignar en 3 nodos):
 
    - `Get row(s) in sheet`
@@ -383,7 +674,10 @@ url | manual_review
    - `Search files and folders`
    - `Search files and folders1`
 
-   **c) SMTP** (asignar en 2 nodos + actualizar emails):
+   **c) SMTP Gmail** (asignar en 2 nodos + actualizar emails):
+
+   > **📧 ¿Cómo configurar Gmail SMTP?** Consulta la guía técnica completa:
+   > **[GMAIL_SMTP_SETUP.md](GMAIL_SMTP_SETUP.md)**
 
    - `Send email` (errores)
    - `Send email1` (reportes exitosos)
@@ -392,6 +686,10 @@ url | manual_review
      fromEmail: "tu-email@gmail.com";
      toEmail: "destinatario@gmail.com";
      ```
+   - **Requisitos previos:**
+     - Verificación en Dos Pasos habilitada
+     - Contraseña de Aplicación generada (ver guía)
+     - Credencial SMTP configurada en n8n
 
 6. **Ajustar configuración (opcional):**
 
@@ -419,35 +717,6 @@ url | manual_review
 
 **Documentación detallada del workflow:**
 Ver [workflows/README.md](workflows/README.md) para descripción completa de cada nodo.
-
-#### Crear Workflow Básico Manualmente (Alternativa para pruebas)
-
-Si prefieres crear un workflow simple desde cero para probar la integración:
-
-**Workflow de prueba simple (3 nodos):**
-
-```
-1. Manual Trigger (botón de ejecución)
-   ↓
-2. HTTP Request → API Exercise01
-   ↓
-3. Set (guardar resultado)
-```
-
-**Configuración del nodo HTTP Request:**
-
-```javascript
-Method: GET
-URL: http://host.docker.internal:8000/api/v1/risk-analysis
-Query Parameters:
-  - company_name: Tesla
-Authentication: None
-Response Format: JSON
-Timeout: 30000 ms
-```
-
-**Para workflows avanzados:**
-Se recomienda usar el workflow pre-configurado `workflow-riesgos.json` que incluye toda la lógica de producción con 14 nodos, manejo de errores, validaciones y automatización completa.
 
 ---
 
@@ -924,167 +1193,27 @@ return items.map((item) => {
 
 ---
 
-## 🔑 Guía de Configuración de Credenciales
+## 🔑 Configuración de Credenciales
 
-### Google Workspace OAuth 2.0
+### Google Workspace (Drive, Sheets, Gmail)
 
-#### Paso 1: Crear Proyecto en Google Cloud
+Este proyecto requiere credenciales de Google Cloud para integrar con Google Drive, Google Sheets y Gmail. Para instrucciones detalladas de configuración:
 
-1. Accede a [Google Cloud Console](https://console.cloud.google.com/)
-2. Crea nuevo proyecto: **"n8n-risk-automation"**
-3. Habilita las siguientes APIs:
-   - Gmail API
-   - Google Sheets API
-   - Google Drive API
+📖 **Guías completas de configuración:**
 
-#### Paso 2: Configurar Pantalla de Consentimiento
+| Servicio                  | Guía                                                                      | Descripción                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Google Cloud APIs**     | [GOOGLE_CLOUD_SETUP.md](GOOGLE_CLOUD_SETUP.md)                            | Configuración de OAuth 2.0, habilitación de APIs (Drive, Sheets, Gmail), pantalla de consentimiento |
+| **Gmail SMTP**            | [GMAIL_SMTP_SETUP.md](GMAIL_SMTP_SETUP.md)                                | Alternativa SMTP para envío de emails, verificación en 2 pasos, contraseña de aplicación            |
+| **Documentación Oficial** | [Google Cloud Console Docs](https://cloud.google.com/docs/authentication) | Documentación oficial de Google sobre autenticación y APIs                                          |
 
-1. **OAuth consent screen** → External
-2. Completa información del proyecto
-3. Agrega scopes necesarios:
-   ```
-   https://www.googleapis.com/auth/gmail.send
-   https://www.googleapis.com/auth/spreadsheets
-   https://www.googleapis.com/auth/drive
-   ```
+**Resumen rápido de credenciales necesarias:**
 
-#### Paso 3: Crear Credenciales OAuth 2.0
+- ✅ **Google Drive OAuth2** - Búsqueda y gestión de archivos
+- ✅ **Google Sheets OAuth2** - Lectura/escritura de datos
+- ✅ **Gmail OAuth2 o SMTP** - Envío de emails (elige una opción)
 
-1. **Credentials** → **Create Credentials** → **OAuth client ID**
-2. Application type: **Web application**
-3. Authorized redirect URIs:
-   ```
-   http://localhost:5678/rest/oauth2-credential/callback
-   ```
-4. Guarda **Client ID** y **Client Secret**
-
-#### Paso 4: Configurar en n8n
-
-##### 📧 Gmail API
-
-```yaml
-Credential Type: Gmail OAuth2 API
-Client ID: <tu-client-id>
-Client Secret: <tu-client-secret>
-Auth URI: https://accounts.google.com/o/oauth2/v2/auth
-Token URI: https://oauth2.googleapis.com/token
-Scopes: https://www.googleapis.com/auth/gmail.send
-```
-
-**Pasos detallados en n8n:**
-
-1. Ve a **Credentials** en el menú lateral
-2. Click en **Add Credential**
-3. Busca y selecciona **Gmail OAuth2 API**
-4. Completa los campos:
-   - **Credential Name**: Gmail - Risk Automation
-   - **Client ID**: Pega el ID de Google Cloud Console
-   - **Client Secret**: Pega el Secret de Google Cloud Console
-5. Click en **Connect my account**
-6. Autoriza en el navegador con tu cuenta de Google
-7. Guarda la credencial
-
-##### 📊 Google Sheets API
-
-```yaml
-Credential Type: Google Sheets OAuth2 API
-Client ID: <tu-client-id>
-Client Secret: <tu-client-secret>
-Auth URI: https://accounts.google.com/o/oauth2/v2/auth
-Token URI: https://oauth2.googleapis.com/token
-Scopes: https://www.googleapis.com/auth/spreadsheets
-```
-
-**Pasos detallados en n8n:**
-
-1. Ve a **Credentials** → **Add Credential**
-2. Selecciona **Google Sheets OAuth2 API**
-3. Completa:
-   - **Credential Name**: Google Sheets - Risk Data
-   - **Client ID**: Mismo que Gmail
-   - **Client Secret**: Mismo que Gmail
-4. Click en **Connect my account** y autoriza
-5. Guarda la credencial
-
-**Configuración en nodos Google Sheets:**
-
-- **Operation**: Append, Update, Create, Read
-- **Document ID**: Obtén el ID de la URL de tu hoja:
-  ```
-  https://docs.google.com/spreadsheets/d/[DOCUMENT_ID]/edit
-  ```
-- **Sheet Name**: Nombre de la pestaña (ej: "Risk Analysis")
-- **Range**: Rango de celdas (ej: "A1:F100")
-
-##### 📁 Google Drive API
-
-```yaml
-Credential Type: Google Drive OAuth2 API
-Client ID: <tu-client-id>
-Client Secret: <tu-client-secret>
-Auth URI: https://accounts.google.com/o/oauth2/v2/auth
-Token URI: https://oauth2.googleapis.com/token
-Scopes: https://www.googleapis.com/auth/drive
-```
-
-**Pasos detallados en n8n:**
-
-1. Ve a **Credentials** → **Add Credential**
-2. Selecciona **Google Drive OAuth2 API**
-3. Completa:
-   - **Credential Name**: Google Drive - Input Files
-   - **Client ID**: Mismo Client ID de GCP
-   - **Client Secret**: Mismo Secret de GCP
-4. **Important**: Asegúrate de usar el mismo proyecto de GCP
-5. Click en **Connect my account** y autoriza con Google
-6. Guarda la credencial
-
-**Configuración en nodos Google Drive:**
-
-- **Operation**: List, Upload, Download, Delete
-- **Folder ID**: Obtén de la URL de tu carpeta:
-  ```
-  https://drive.google.com/drive/folders/[FOLDER_ID]
-  ```
-- **Search Query**: Usa sintaxis de Drive para filtrar:
-  ```
-  name contains 'risk_data' and mimeType='text/csv'
-  ```
-
-#### Paso 5: Autorizar Acceso
-
-1. En cada nodo de Google (Gmail, Sheets, Drive)
-2. Selecciona la credencial configurada
-3. Click en **Connect my account**
-4. Completa el flujo OAuth en el navegador
-5. Autoriza permisos solicitados
-
-### 🔒 Mejores Prácticas de Seguridad
-
-- ✅ Usa Service Accounts para producción
-- ✅ Rotación periódica de credenciales
-- ✅ Principio de mínimo privilegio en scopes
-- ✅ No commitees credenciales al repositorio
-- ✅ Usa variables de entorno para datos sensibles
-
-### 🔐 Service Accounts (Alternativa para Producción)
-
-Para entornos de producción, considera usar Service Accounts:
-
-1. En GCP Console → **Service Accounts** → **Create Service Account**
-2. Otorga roles necesarios:
-   - **Gmail**: Gmail API User
-   - **Sheets**: Google Sheets Editor
-   - **Drive**: Drive File Access
-3. Crea clave JSON
-4. En n8n, usa **Service Account** en lugar de OAuth2
-5. Carga el archivo JSON de credenciales
-
-**Ventajas:**
-
-- No requiere interacción humana para autorizar
-- Ideal para CI/CD y automatizaciones desatendidas
-- Mayor control granular de permisos
+> **💡 Recomendación:** Sigue las guías paso a paso con capturas de pantalla para una configuración sin errores.
 
 ---
 
@@ -1153,8 +1282,6 @@ exercise02/
 ```
 
 ---
-
-## 🛠️ Solución de Problemas
 
 ### ❌ Error: No se puede conectar a FastAPI
 
@@ -1270,24 +1397,24 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ---
 
-## 📞 Soporte
-
-- 📧 Email: soporte@empresa.com
-- 📚 Documentación n8n: https://docs.n8n.io/
-- 💬 Community: https://community.n8n.io/
-- 🐛 Issues: GitHub Issues del proyecto
-
----
-
 ## 🔗 Enlaces Útiles
+
+### Documentación del Proyecto
+
+- 📖 [GOOGLE_CLOUD_SETUP.md](GOOGLE_CLOUD_SETUP.md) - Configuración de APIs de Google Cloud
+- 📧 [GMAIL_SMTP_SETUP.md](GMAIL_SMTP_SETUP.md) - Configuración de Gmail SMTP para envío de emails
+- 📊 [workflows/README.md](workflows/README.md) - Documentación técnica del workflow
+
+### Documentación Externa
 
 - [Documentación oficial de n8n](https://docs.n8n.io/)
 - [Google Cloud Console](https://console.cloud.google.com/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Docker Compose Reference](https://docs.docker.com/compose/)
+- [Gmail SMTP Settings](https://support.google.com/mail/answer/7126229)
 
 ---
 
-**🎯 Desarrollado por:** Equipo de Automatización  
+**🎯 Desarrollado por:** Erick Peñafiel
 **📅 Última actualización:** Diciembre 2025  
 **⚙️ Versión:** 1.0.0
