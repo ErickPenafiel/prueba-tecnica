@@ -107,8 +107,12 @@ FinUp/
 │
 └── exercise02/                        # Ejercicio 2: Automatización n8n
     ├── README.md                      # Documentación detallada de n8n
+    ├── QUICK_START.md                 # Guía de inicio rápido
     ├── docker-compose.yml             # Configuración Docker
     ├── .env.example                   # Plantilla de variables de entorno
+    ├── workflows/                     # ⭐ Workflows exportados de n8n
+    │   ├── README.md                  # Documentación del workflow
+    │   └── workflow-riesgos.json      # Workflow completo (importable)
     ├── n8n_data/                      # Datos persistentes de n8n (generado)
     └── local-files/                   # Archivos compartidos con workflows
 ```

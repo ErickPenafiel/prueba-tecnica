@@ -1,5 +1,21 @@
-# Variables de entorno reales
+# Variables de entorno reales (contiene credenciales)
 .env
 
-# Datos persistentes de n8n (BD, credenciales, etc.)
+# Datos persistentes de n8n (BD, credenciales, configuración)
 n8n_data/
+
+# Archivos descargados o temporales en local-files
+local-files/*.tmp
+local-files/*.temp
+local-files/*.bak
+
+# Workflows exportados con datos sensibles (opcional)
+# Si tus workflows contienen información sensible, descoméntalos:
+# workflows/*-production.json
+# workflows/*-sensitive.json
+
+# Logs
+*.log
+
+# Backups
+*.backup

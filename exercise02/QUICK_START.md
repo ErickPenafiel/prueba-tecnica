@@ -98,9 +98,28 @@ curl http://localhost:8000/api/v1/risk-analysis?company_name=Tesla
 
 ---
 
-## 🎮 Crear tu Primer Workflow
+## 🎮 Importar el Workflow
 
-### Workflow Básico: Análisis de Tesla
+### Importar Workflow Pre-configurado ⚡
+
+1. **En n8n, haz clic en "Workflows"** (menú superior izquierdo)
+2. **Haz clic en "Import from File"**
+3. **Selecciona el archivo:** `workflows/workflow-riesgos.json`
+4. **Configurar credenciales de Google Sheets:**
+   - Asignar credenciales en los nodos de Google Sheets
+   - Actualizar el ID del Spreadsheet
+5. **¡Listo!** El workflow está configurado
+
+**Probar el workflow:**
+
+- Haz clic en **"Execute Workflow"** (botón superior derecho)
+- Verás el análisis de riesgo de las empresas en tu Google Sheet
+- Haz clic en cada nodo para ver los resultados
+- El workflow se ejecutará automáticamente cada día a las 8 AM
+
+### Opción B: Crear Workflow Manualmente
+
+#### Workflow Básico: Análisis de Tesla
 
 1. **Nuevo Workflow** → Haz clic en el `+` para crear workflow
 
@@ -147,7 +166,30 @@ Query Parameters:
 
 ---
 
-## 🔧 Comandos Útiles
+## � Exportar tu Workflow (Para Compartir)
+
+Una vez que hayas creado o modificado un workflow:
+
+1. **Abrir el workflow** en n8n
+2. **Hacer clic en el menú ⋯** (tres puntos, esquina superior derecha)
+3. **Seleccionar "Download"**
+4. **Guardar el archivo** en `./workflows/mi-workflow.json`
+
+```powershell
+# Mover el workflow descargado a la carpeta del proyecto
+mv ~/Downloads/workflow-name.json ./workflows/mi-workflow-personalizado.json
+```
+
+**Esto te permite:**
+
+- ✅ Hacer backup de tus workflows
+- ✅ Compartir workflows con el equipo
+- ✅ Versionar workflows en Git
+- ✅ Migrar workflows entre instancias de n8n
+
+---
+
+## �🔧 Comandos Útiles
 
 ### Gestión de Docker
 

@@ -286,9 +286,35 @@ xxxxx          docker.n8n.io/n8nio/n8n:latest    Up 2 minutes   0.0.0.0:5678->56
    - **Google Drive API** (OAuth2)
 4. Sigue el flujo de autenticación OAuth
 
-### Paso 6: Importar/Crear el workflow
+### Paso 6: Importar el Workflow
 
-**Estructura del workflow de ejemplo:**
+#### Importar Workflow Pre-configurado (Recomendado)
+
+El proyecto incluye un workflow completo listo para usar: `workflow-riesgos.json`
+
+**Características del workflow:**
+
+- ✅ Schedule Trigger (ejecución automática diaria a las 8 AM)
+- ✅ Google Sheets (lectura de lista de empresas)
+- ✅ HTTP Request al API del Ejercicio 01
+- ✅ Procesamiento y formateo de resultados
+- ✅ Google Sheets (escritura de resultados)
+
+**Pasos para importar:**
+
+1. En n8n, haz clic en el menú **Workflows** (parte superior izquierda)
+2. Haz clic en **Import from File**
+3. Selecciona el archivo: `workflows/workflow-riesgos.json`
+4. El workflow se importará con todos los nodos configurados
+5. **Configurar credenciales:**
+   - Asignar credenciales de Google Sheets en los nodos correspondientes
+   - Actualizar el ID del Google Spreadsheet
+6. **Ajustar configuración (opcional):**
+   - Cambiar el horario del Schedule Trigger si lo deseas
+
+#### Crear Workflow Manualmente (Alternativa)
+
+**Estructura del workflow:**
 
 ```
 1. Schedule Trigger (cada hora)
@@ -306,6 +332,59 @@ xxxxx          docker.n8n.io/n8nio/n8n:latest    Up 2 minutes   0.0.0.0:5678->56
 7. IF (¿Alertas detectadas?)
    ↓
 8. Gmail (Enviar reporte)
+```
+
+---
+
+## 📤 Exportar e Importar Workflows
+
+### Exportar un Workflow
+
+Una vez que hayas creado tu workflow en n8n:
+
+1. **Abrir el workflow** que deseas exportar
+2. Hacer clic en el menú **⋯** (tres puntos) en la esquina superior derecha
+3. Seleccionar **Download**
+4. El archivo se descargará como `workflow-name.json`
+5. Guardar el archivo en el directorio del proyecto (opcional):
+   ```powershell
+   # Mover el archivo a la carpeta workflows
+   mkdir workflows
+   mv ~/Downloads/workflow-name.json ./workflows/risk-analysis-workflow.json
+   ```
+
+### Importar un Workflow
+
+Para importar un workflow existente:
+
+1. En n8n, hacer clic en **Workflows** (menú superior)
+2. Hacer clic en **Import from File**
+3. Seleccionar el archivo `.json` del workflow
+4. El workflow se importará automáticamente
+5. **Importante:** Configurar las credenciales necesarias:
+   - Google Sheets
+   - Gmail
+   - Cualquier otra integración que requiera autenticación
+
+### Compartir Workflows
+
+Los archivos de workflow exportados pueden:
+
+- ✅ Ser compartidos con el equipo
+- ✅ Versionarse en Git
+- ✅ Usarse como plantillas
+- ✅ Documentar la arquitectura de automatización
+
+**Recomendación:** Crear un directorio `workflows/` en el proyecto para almacenar workflows exportados:
+
+```
+exercise02/
+├── workflows/
+│   ├── risk-analysis-workflow.json       # Workflow principal
+│   ├── compliance-alerts-workflow.json   # Workflow de alertas
+│   └── README.md                         # Documentación de workflows
+├── docker-compose.yml
+└── README.md
 ```
 
 ---

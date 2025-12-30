@@ -1,0 +1,649 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        0
+      ],
+      "id": "c653b798-76b2-4af1-b54a-6c3c6af9cc44",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/api/v1/risk-analysis",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "company_name",
+              "value": "={{ $json.nombre }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1472,
+        16
+      ],
+      "id": "f9b3de55-d381-41e4-b29e-96d5a31560fe",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "75972535-3dba-4278-8a2c-32af668f82ab",
+              "leftValue": "={{ $json.status_code }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1664,
+        16
+      ],
+      "id": "e1e5655f-a51b-44e9-8eda-438b8b07f986",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "penafiel.erick.martin@gmail.com",
+        "toEmail": "erick.212.98@gmail.com",
+        "subject": "=❌ ERROR: Análisis de Riesgo - {{ $('Get row(s) in sheet').item.json.nombre || 'Empresa desconocida' }}",
+        "emailFormat": "text",
+        "text": "=Se ha detectado un fallo en el flujo de automatización al intentar consultar la API de análisis.\n\nDetalles del error:\n---------------------------------------------------------\n🏢 Empresa: {{ $('Get row(s) in sheet').item.json.nombre }}\n❌ Error: {{ $json.message || 'No se pudo establecer conexión con el servidor' }}\n📡 Status Code: {{ $json.status_code || 'N/A' }}\n📂 Nodo: HTTP Request (FastAPI)\n---------------------------------------------------------\n\nPosibles causas:\n1. El servidor FastAPI no está corriendo.\n2. La dirección 'host.docker.internal' no es accesible desde el contenedor.\n3. La API devolvió un error 500 o 404.\n\nFecha del incidente: {{ $now.format('DD/MM/YYYY HH:mm:ss') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        112
+      ],
+      "id": "d0bf0c8b-82b7-4cd5-989e-c88cd0cc5f0e",
+      "name": "Send email",
+      "webhookId": "926e44b0-085d-4ea5-9157-6d40ce4e1dc3",
+      "credentials": {
+        "smtp": {
+          "id": "sWkZP8mKjhdwjGkB",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "penafiel.erick.martin@gmail.com",
+        "toEmail": "erick.212.98@gmail.com",
+        "subject": "=📊 Reporte de Riesgo: {{ $json.company }} - [{{ $json.risk_status.toUpperCase() }}]",
+        "emailFormat": "text",
+        "text": "=SISTEMA DE MONITOREO DE RIESGO - REPORTE DIARIO\n\nSe ha procesado un nuevo análisis para la empresa: {{ $json.company }}\n\n---------------------------------------------------------\nRESUMEN DE ANÁLISIS:\n---------------------------------------------------------\n🏢 Empresa: {{ $json.company }}\n🛡️ Estado de Riesgo: {{ $json.risk_status }}\n📉 Puntaje de Riesgo: {{ $json.risk_score }}\n🎭 Sentimiento: {{ $json.sentiment }}\n🔍 Tipo de Incumplimiento: {{ $json.compliance_type }}\n⚠️ Revisión Manual: {{ $json.manual_review }}\n\n---------------------------------------------------------\nEVIDENCIA DETECTADA:\n---------------------------------------------------------\n📰 Titular: \"{{ $json.evidence }}\"\n🔗 Enlace: {{ $json.url }}\n\n---------------------------------------------------------\nDETALLES TÉCNICOS:\n---------------------------------------------------------\n📅 Fecha de Análisis (API): {{ $json.timestamp_analisis }}\n📥 Fecha de Registro (N8N): {{ $json.registration_date }}\n💬 Mensaje: {{ $json.message }}\n📡 Status API: {{ $json.status }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2976,
+        -96
+      ],
+      "id": "71c35795-4972-4f9b-bf9c-ce1e5b9636f1",
+      "name": "Send email1",
+      "webhookId": "a48e3211-bcff-484b-8144-359e86a9c90f",
+      "credentials": {
+        "smtp": {
+          "id": "sWkZP8mKjhdwjGkB",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "=name",
+        "queryString": "monitoring_register",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "mode": "list",
+            "value": "My Drive"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1920,
+        -112
+      ],
+      "id": "36c576c7-82c3-4664-bdd9-c29e288c71e8",
+      "name": "Search files and folders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "J26wDH7ZSt1NRfSv",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "70270f66-6803-4ac0-9cd4-b43b3e22369e",
+              "leftValue": "={{ $json.values() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2128,
+        -112
+      ],
+      "id": "7432e64c-7af3-4271-88c2-42180ab2fa59",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "=monitoring_register",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "registros"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2336,
+        -208
+      ],
+      "id": "320b865b-e568-4c70-a2bf-8fc596d4684e",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XWosL2Vepz1BxfM3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ \n  $if(\n    $(\"Create spreadsheet\").isExecuted, \n    $(\"Create spreadsheet\").item.json.spreadsheetId, \n    $(\"Search files and folders\").item.json.id\n  ) \n}}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "registros",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2752,
+        -96
+      ],
+      "id": "3bd14eac-9a70-4878-b1ff-1562a1761e1e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XWosL2Vepz1BxfM3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtenemos todos los datos del nodo HTTP Request\nconst items = $(\"HTTP Request\").all();\n\nconst hoy = new Date();\nconst fechaLegible = hoy.toLocaleString('es-ES', { \n  day: '2-digit', \n  month: '2-digit', \n  year: 'numeric', \n  hour: '2-digit', \n  minute: '2-digit', \n  second: '2-digit' \n});\n\nconst rawData = Array.isArray(items[0].json) ? items[0].json : items.map(i => i.json);\n\nreturn rawData.map(item => {\n  return {\n    json: {    \n      timestamp_analisis: item.data?.analysis_timestamp,\n      status: item.status_code,\n      message: item.message,\n      company: item.data?.company_name,\n      registration_date: fechaLegible,\n      risk_status: item.data?.overall_risk_status,\n      risk_score: item.data?.overall_risk_score,\n      sentiment: item.data?.market_sentiment,\n      compliance_type: item.data?.compliance_risk_type,\n      evidence: item.data?.evidence_headline,\n      url: item.data?.evidence_url,\n      manual_review: item.data?.requires_manual_review ? \"SI\" : \"NO\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        -96
+      ],
+      "id": "c7edde34-488c-4dc6-94af-4e5ff5fa3988",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "monitoring_list",
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        256,
+        0
+      ],
+      "id": "050625bf-e8b3-4e99-a2e4-417cc1d2690a",
+      "name": "Search files and folders1",
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "J26wDH7ZSt1NRfSv",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6b07a5df-16ba-4286-9385-2677b77fe42c",
+              "leftValue": "={{ $json.values() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        0
+      ],
+      "id": "43090aa5-30af-4de6-924d-8fca8434ff36",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "monitoring_list",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "list"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "d090facf-af3e-4506-8a0e-a4bf4146a590",
+      "name": "Create spreadsheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XWosL2Vepz1BxfM3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { nombre: \"Tesla\" },\n  { nombre: \"Apple\"},\n  { nombre: \"Luis Arce\"},  \n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -96
+      ],
+      "id": "998507ab-21d8-4bb9-bf6d-a292779de778",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ \n  $(\"Create spreadsheet1\").first().json[\"spreadsheetId\"]\n}}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "list",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1056,
+        -96
+      ],
+      "id": "3dd7c151-d8f5-4898-a796-5ca04b43825d",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XWosL2Vepz1BxfM3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sW1S4Wd7CKubfBm0gNjdMy8FTFYEzvNp-CN54AumWd8",
+          "mode": "list",
+          "cachedResultName": "monitoring_list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sW1S4Wd7CKubfBm0gNjdMy8FTFYEzvNp-CN54AumWd8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 424485808,
+          "mode": "list",
+          "cachedResultName": "list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sW1S4Wd7CKubfBm0gNjdMy8FTFYEzvNp-CN54AumWd8/edit#gid=424485808"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        16
+      ],
+      "id": "f1d9cbfa-021a-471d-ba02-84ffa88c6f35",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XWosL2Vepz1BxfM3",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email1": {
+      "main": [
+        []
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create spreadsheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "32a8d26e-e975-4af5-b320-29d783f690c5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2af24f86fbf998dcf9c1625ebc82d2f73f0b6e7dbb8d3ed78892c1f303633915"
+  },
+  "id": "fgpDiPQjjbBWWJCu",
+  "tags": []
+}
