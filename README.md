@@ -121,23 +121,15 @@ FinUp/
 
 ## 🚀 Guía de Instalación Rápida
 
-### 📋 Checklist de Requisitos
+### 📋 Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalado:
 
-- [ ] **Python 3.9+** → [Descargar](https://www.python.org/downloads/)
-- [ ] **Docker Desktop** → [Descargar](https://www.docker.com/products/docker-desktop)
-- [ ] **Git** → [Descargar](https://git-scm.com/downloads)
-- [ ] **Cuenta NewsAPI** (gratis) → [Registrarse](https://newsapi.org/register)
-- [ ] **Cuenta Google Cloud** (para Gmail/Sheets) → [Registrarse](https://console.cloud.google.com/)
-
-### Requisitos Previos
-
-- ✅ **Python 3.9+** (para Ejercicio 01)
-- ✅ **Docker Desktop** (para Ejercicio 02)
-- ✅ **Git** para clonar el repositorio
-- ✅ **Cuenta NewsAPI** (gratuita) - [Registrarse aquí](https://newsapi.org/)
-- ✅ **Cuenta Google Cloud Platform** (para OAuth de Gmail/Sheets)
+- ✅ **Python 3.9+** → [Descargar](https://www.python.org/downloads/)
+- ✅ **Docker Desktop** → [Descargar](https://www.docker.com/products/docker-desktop)
+- ✅ **Git** → [Descargar](https://git-scm.com/downloads)
+- ✅ **Cuenta NewsAPI** (gratis) → [Registrarse](https://newsapi.org/register)
+- ✅ **Cuenta Google Cloud** (para Gmail/Sheets - opcional) → [Registrarse](https://console.cloud.google.com/)
 
 ---
 
@@ -145,16 +137,18 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ### Opción 1: Guías de Inicio Rápido (Recomendado)
 
-Cada ejercicio tiene su propia guía de inicio rápido:
+Cada ejercicio tiene su propia guía de inicio rápido con instrucciones paso a paso:
 
-1. **[Ejercicio 01 - QUICK_START.md](exercise01/QUICK_START.md)**
+1. **📘 [Ejercicio 01 - QUICK_START.md](exercise01/QUICK_START.md)**
 
    - Setup del API de SafeBank AI
-   - ~3 minutos (excluyendo descarga de modelos)
+   - Instalación de dependencias y modelos de IA
+   - ~5 minutos (primera vez incluye descarga de modelos)
 
-2. **[Ejercicio 02 - QUICK_START.md](exercise02/QUICK_START.md)**
+2. **📗 [Ejercicio 02 - QUICK_START.md](exercise02/QUICK_START.md)**
    - Setup de n8n y automatización
-   - ~2 minutos
+   - Importación de workflows
+   - ~3 minutos
 
 ### Opción 2: Setup Manual Completo
 
@@ -265,17 +259,27 @@ curl "http://localhost:8000/api/v1/risk-analysis?company_name=Tesla"
 ### Ejemplo 2: Workflow Automatizado (Ejercicio 02)
 
 1. **Acceder a n8n:** http://localhost:5678
-2. **Crear nuevo workflow:**
-   - Agregar nodo "Schedule Trigger" (ejecutar cada hora)
-   - Agregar nodo "HTTP Request":
-     - Method: GET
-     - URL: `http://host.docker.internal:8000/api/v1/risk-analysis`
-     - Query Parameters: `company_name` = `Tesla`
-   - Agregar nodo "Code" para formatear resultados
-   - Agregar nodo "Google Sheets" para guardar datos
-   - Agregar nodo "Gmail" para enviar alertas
-3. **Activar workflow**
-4. **Monitorear ejecuciones** en la pestaña "Executions"
+
+2. **Importar workflow pre-configurado:**
+
+   - Ir a **Workflows** → **Import from File**
+   - Seleccionar: `exercise02/workflows/workflow-riesgos.json`
+   - Configurar credenciales de Google Sheets
+   - Actualizar ID del Google Spreadsheet
+
+3. **El workflow incluye:**
+
+   - ✅ Schedule Trigger (ejecución diaria automática)
+   - ✅ Google Sheets (lectura de empresas)
+   - ✅ HTTP Request al API del Ejercicio 01
+   - ✅ Procesamiento de resultados
+   - ✅ Google Sheets (escritura de resultados)
+   - ✅ Alertas automáticas
+
+4. **Activar workflow** y monitorear ejecuciones
+
+**Alternativa - Crear workflow manualmente:**
+Ver documentación completa en [exercise02/README.md](exercise02/README.md)
 
 ---
 
