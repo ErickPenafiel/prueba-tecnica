@@ -1,0 +1,5 @@
+# Variables de entorno reales
+.env
+
+# Datos persistentes de n8n (BD, credenciales, etc.)
+n8n_data/

@@ -1,0 +1,53 @@
+# ============================================
+# Prueba Técnica FinUp - .gitignore Principal
+# ============================================
+
+# Variables de entorno con credenciales
+.env
+*.env
+!.env.example
+
+# Archivos de configuración local
+config.local.*
+secrets.*
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporales
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Backups
+*.bak
+*.backup
+backup/
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+
+# Documentación generada
+docs/_build/
+site/
+
+# Certificados y keys
+*.pem
+*.key
+*.crt
+*.p12
+
+# Notas personales
+NOTES.md
+TODO.md
